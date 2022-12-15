@@ -106,69 +106,67 @@ int main()
 					else {
 						// On créer un set d'utilisateurs cibles
 						set<string> targets;
-						string users = "";
+						string userList = "";
 						
 						// Si message commence par { et contient }
-						if (message.front() == '{') {
-							int cmdEnd = message.find('}');
-							if (cmdEnd != std::string::npos) {
+						int cmdEnd = message.find('}');
+						if (message.length() > 0 && message.front() == '{' && cmdEnd != std::string::npos) {
 
-								// On extrait la liste de cible du message
-								users = message.substr(1, cmdEnd - 1);
+							// On extrait la liste de cible du message et on y retire les espaces
+							userList = message.substr(1, cmdEnd - 1);
+							userList.erase(remove(userList.begin(), userList.end(), ' '), userList.end());
 
-								// On retire les espaces de la liste
-								users.erase(remove(users.begin(), users.end(), ' '), users.end());
+							// On extrait le reste du message et on retire les espaces au debut (Si l'utiisateur a mis un espace après la liste)
+							message = message.substr(cmdEnd + 1, message.length() - 1);
+							while (message.length() > 0 && message.front() == ' ') message = message.substr(1, message.length() - 1);
 
-								// On retire la premiere partie du message
-								message = message.substr(cmdEnd + 1, message.length() - 1);
+							// On sépare les élements de la liste et on les ajoute dans le set
+							if (userList.length() > 0) {
+								stringstream ss(userList);
+								string user;
+								while (!ss.eof()) {
+									getline(ss, user, ',');
+									targets.insert(user);
+								}
+							}
+						}
 
-								// On retire les espaces au début du message
-								while (message.front() == ' ') message = message.substr(1, message.length() - 1);
+						// Si le message n'est pas vide
+						if (message.length() > 0) {
 
-								// On sépare les élement de la liste et on les ajoute dans le set
-								if (users.length() != 0) {
-									stringstream ss(users);
-									string user;
-									while (!ss.eof()) {
-										getline(ss, user, ',');
-										targets.insert(user);
+							// Si aucune cible n'a été envoyé, on ajoute tous les utilisateurs
+							if (targets.size() == 0)
+								for (auto const& element : names)
+									if (element.first != socketIn)
+										targets.insert(element.second);
+
+							// On loop parmis toutes les cibles
+							for (set<string>::iterator target = targets.begin(); target != targets.end(); ++target) {
+
+								// On cherche la cible dans notre map de noms
+								for (auto const& element : names) {
+
+									//Si socket trouvé
+									if (element.second == *target && element.first != socketIn) {
+										SOCKET socketOut = element.first;
+
+										// On trouve le nom de l'expéditeur
+										string name = "Inconnu";
+										for (auto const& element : names)
+											if (element.first == socketIn)
+												name = element.second;
+
+										// On envoit le message
+										string msg = name + " >> " + message + "\r\n";
+										send(socketOut, msg.c_str(), msg.size() + 1, 0);
 									}
 								}
 							}
+
+							// On renvoit à l'expéditeur
+							string msg = "Moi >> " + message + "\r\n";
+							send(socketIn, msg.c_str(), msg.size() + 1, 0);
 						}
-
-						// Si aucune cible n'a été envoyé, on ajoute tous les utilisateurs
-						if (targets.size() == 0)
-							for (auto const& element : names)
-								if (element.first != socketIn)
-									targets.insert(element.second);
-
-						// On loop parmis toutes les cibles
-						for (set<string>::iterator target = targets.begin(); target != targets.end(); ++target) {
-
-							// On cherche la cible dans notre map de noms
-							for (auto const& element : names) {
-
-								//Si socket trouvé
-								if (element.second == *target && element.first != socketIn) {
-									SOCKET socketOut = element.first;
-
-									// On trouve le nom de l'expéditeur
-									string name = "Unknown";
-									for (auto const& element : names)
-										if (element.first == socketIn)
-											name = element.second;
-
-									// On envoit le message
-									string msg = name + " >> " + message + "\r\n";
-									send(socketOut, msg.c_str(), msg.size() + 1, 0);
-								}
-							}
-						}
-
-						// On renvoit à l'expéditeur
-						string msg = "Moi >> " + message + "\r\n";
-						send(socketIn, msg.c_str(), msg.size() + 1, 0);
 					}
 				}
 			}
