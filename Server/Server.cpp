@@ -96,12 +96,11 @@ int main()
 					}
 					else if (message == "list")
 					{
-						string s = "Users:";
+						string s = "Connectes: [";
+						for (auto const& element : names)
+							s += element.second + ", ";
+						s += "]";
 						send(socketIn, s.c_str(), s.size() + 1, 0);
-						for (auto const& element : names) {
-							string name = "- " + element.second;
-							send(socketIn, name.c_str(), name.size() + 1, 0);
-						}
 					}
 					else {
 						set<string> targets;
