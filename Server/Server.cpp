@@ -1,6 +1,9 @@
 #include <iostream>
 #include <WS2tcpip.h>
 #include <sstream>
+#include <map>
+#include <vector>
+#include <set>
 
 #pragma comment (lib, "ws2_32.lib")
 
@@ -24,6 +27,8 @@ int main()
 	//Création d'un set de sockets
 	fd_set sockets;
 	FD_ZERO(&sockets);
+
+	map<SOCKET, string> names;
 
 	// Création et validation d'un socket
 	SOCKET listening = socket(AF_INET, SOCK_STREAM, 0);
@@ -52,10 +57,10 @@ int main()
 				// Création d'un socket client et ajout au set
 				SOCKET client = accept(listening, nullptr, nullptr);
 				FD_SET(client, &sockets);
-				cout << "Client connecté!" << endl;
+				cout << "Client connecte!" << endl;
 
 				// Envoie d'une réponse au client
-				string msg = "Connecté au serveur!";
+				string msg = "Connecte au serveur!";
 				send(client, msg.c_str(), msg.size() + 1, 0);
 			}
 			else {
@@ -64,22 +69,84 @@ int main()
 				char buf[4096];
 				ZeroMemory(buf, 4096);
 				int bytes = recv(socketIn, buf, 4096, 0);
+				
 				if (bytes <= 0) {
 
 					// On retire le client
 					closesocket(socketIn);
 					FD_CLR(socketIn, &sockets);
+					names.erase(socketIn);
+					cout << "Client deconnecte!" << endl;
 				}
 				else {
-					for (int i = 0; i < sockets.fd_count; i++) {
-						SOCKET socketOut = sockets.fd_array[i];
 
-						ostringstream os;
-						if (socketOut == socketIn) os << "MOI >> " << buf << "\r\n";
-						else os << "#" << socketIn << " >> " << buf << "\r\n";
+					// Construction d'un string
+					string message = "";
+					for (int i = 0; i < bytes; i++) message += buf[i];
+					while (message.front() == ' ') message = message.substr(0, 1);
 
-						string msg = os.str();
-						send(socketOut, msg.c_str(), msg.size() + 1, 0);
+					// Socket est-il enregistré?
+					bool registered = false;
+					for (auto const& element : names)
+						if (element.first == socketIn) registered = true;
+
+					// Sinon -> Premier message = nom
+					if (!registered) {
+						names[socketIn] = message;
+					}
+					else if (message == "list")
+					{
+						string s = "Users:";
+						send(socketIn, s.c_str(), s.size() + 1, 0);
+						for (auto const& element : names) {
+							string name = "- " + element.second;
+							send(socketIn, name.c_str(), name.size() + 1, 0);
+						}
+					}
+					else {
+						set<string> targets;
+						string users = "";
+						if (message.front() == '{') {
+							int cmdEnd = message.find('}');
+							if (cmdEnd != std::string::npos) {
+								users = message.substr(1, cmdEnd - 1);
+								users.erase(remove(users.begin(), users.end(), ' '), users.end());
+							}
+							message = message.substr(cmdEnd + 1, message.length() - 1);
+							while (message.front() == ' ') message = message.substr(1, message.length() - 1);
+							if (users.length() != 0) {
+								stringstream ss(users);
+								string user;
+								while (!ss.eof()) {
+									getline(ss, user, ',');
+									targets.insert(user);
+								}
+							}
+						}
+
+						if (targets.size() == 0)
+							for (auto const& element : names)
+								if (element.first != socketIn)
+									targets.insert(element.second);
+
+						for (set<string>::iterator target = targets.begin(); target != targets.end(); ++target) {
+							for (auto const& element : names) {
+								if (element.second == *target && element.first != socketIn) {
+									SOCKET socketOut = element.first;
+
+									string name = "Unknown";
+									for (auto const& element : names)
+										if (element.first == socketIn)
+											name = element.second;
+
+									string msg = name + " >> " + message + "\r\n";
+									send(socketOut, msg.c_str(), msg.size() + 1, 0);
+								}
+							}
+						}
+
+						string msg = "Moi >> " + message + "\r\n";
+						send(socketIn, msg.c_str(), msg.size() + 1, 0);
 					}
 				}
 			}
