@@ -121,7 +121,7 @@ namespace Client
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
             this.Name = "Connection";
-            this.Text = "Connection";
+            this.Text = "TP CHAT";
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

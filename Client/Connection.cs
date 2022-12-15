@@ -24,6 +24,24 @@ namespace Client
             int port = (int) numericUpDown1.Value;
             string name = textBox2.Text;
 
+            if (string.IsNullOrEmpty(name))
+            {
+                MessageBox.Show("Vous devez entrer un nom pour vous connecter!");
+                return;
+            }
+
+            if (name.Contains(' '))
+            {
+                MessageBox.Show("Votre nom ne peut contenir d'espaces!");
+                return;
+            }
+
+            if (name.Contains(','))
+            {
+                MessageBox.Show("Votre nom ne peut contenir de virgules!");
+                return;
+            }
+
             try
             {
                 TcpClient client = new TcpClient(ip, port);
@@ -35,7 +53,7 @@ namespace Client
             }
             catch (SocketException ex)
             {
-                MessageBox.Show("La connection au serveur a échouée.\n");
+                MessageBox.Show("La connection au serveur a échouée.");
             }
         }
     }

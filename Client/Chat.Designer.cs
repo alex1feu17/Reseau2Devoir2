@@ -36,9 +36,9 @@ namespace Client
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(649, 393);
+            this.button1.Location = new System.Drawing.Point(222, 393);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(139, 45);
+            this.button1.Size = new System.Drawing.Size(95, 45);
             this.button1.TabIndex = 0;
             this.button1.Text = "Envoyer";
             this.button1.UseVisualStyleBackColor = true;
@@ -48,7 +48,7 @@ namespace Client
             // 
             this.textBox1.Location = new System.Drawing.Point(12, 404);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(631, 22);
+            this.textBox1.Size = new System.Drawing.Size(204, 22);
             this.textBox1.TabIndex = 1;
             // 
             // listBox1
@@ -57,18 +57,18 @@ namespace Client
             this.listBox1.ItemHeight = 16;
             this.listBox1.Location = new System.Drawing.Point(13, 13);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(775, 356);
+            this.listBox1.Size = new System.Drawing.Size(304, 356);
             this.listBox1.TabIndex = 2;
             // 
-            // Form1
+            // Chat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(329, 450);
             this.Controls.Add(this.listBox1);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
-            this.Name = "Form1";
+            this.Name = "Chat";
             this.Text = "TP CHAT";
             this.ResumeLayout(false);
             this.PerformLayout();
